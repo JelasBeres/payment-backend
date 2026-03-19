@@ -41,9 +41,11 @@ module.exports = async (req, res) => {
     const data = await response.json();
 
     if (data.status_code !== "201") {
+      console.error("Midtrans Error Response:", data);
       return res.status(400).json({ 
-        message: "Midtrans Error", 
-        error: data.status_message 
+        message: data.status_message || "Midtrans Error", 
+        error_details: data.validation_messages || data.status_message,
+        full_response: data
       });
     }
 
