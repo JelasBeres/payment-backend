@@ -1,13 +1,8 @@
 {
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
+  "name": "payment-backend",
+  "version": "1.0.0",
+  "description": "Midtrans to Firebase Notification Backend",
   "dependencies": {
-    "firebase-admin": "^12.0.0",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "firebase-admin": "^12.0.0"
   }
 }
