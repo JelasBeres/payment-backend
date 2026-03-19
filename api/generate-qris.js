@@ -17,6 +17,15 @@ module.exports = async (req, res) => {
   }
 
   const authString = Buffer.from(`${serverKey}:`).toString("base64");
+  const payload = {
+    payment_type: "qris",
+    transaction_details: {
+      order_id: orderId,
+      gross_amount: parseInt(amount),
+    },
+  };
+
+  console.log("Sending to Midtrans:", JSON.stringify(payload));
 
   try {
     const response = await fetch("https://api.sandbox.midtrans.com/v2/charge", {
@@ -26,21 +35,13 @@ module.exports = async (req, res) => {
         "Content-Type": "application/json",
         "Authorization": `Basic ${authString}`,
       },
-      body: JSON.stringify({
-        payment_type: "qris",
-        transaction_details: {
-          order_id: orderId,
-          gross_amount: parseInt(amount),
-        },
-        qris: {
-          acquirer: "gpn",
-        },
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
+    console.log("Midtrans Response Body:", data);
 
-    if (data.status_code !== "201") {
+    if (data.status_code !== "201" && data.status_code !== "200") {
       console.error("Midtrans Error Response:", data);
       return res.status(400).json({ 
         message: data.status_message || "Midtrans Error", 
