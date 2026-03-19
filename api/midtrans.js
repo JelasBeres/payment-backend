@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 
 // Ambil Service Account dari Environment Variable di Vercel
 // Kamu harus mengcopy isi file JSON Service Account ke env variable FIREBASE_SERVICE_ACCOUNT
@@ -24,6 +25,33 @@ module.exports = async (req, res) => {
     const transactionStatus = notification.transaction_status;
     const grossAmount = notification.gross_amount;
     const paymentType = notification.payment_type;
+    const signatureKey = notification.signature_key;
+    const statusCode = notification.status_code;
+
+    // Verifikasi Signature (Security)
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+
+    if (!serverKey) {
+      console.error("MIDTRANS_SERVER_KEY is not set in environment variables!");
+      // Kita tetap lanjut jika dalam development, tapi idealnya return error
+    }
+
+    if (!signatureKey) {
+      console.error("Missing signature_key in request!");
+      return res.status(401).json({ message: "Signature Key is required" });
+    }
+
+    const hash = crypto
+      .createHash("sha512")
+      .update(`${orderId}${statusCode}${grossAmount}${serverKey}`)
+      .digest("hex");
+
+    if (hash !== signatureKey) {
+      console.error(
+        `Invalid Signature! Calculated: ${hash}, Received: ${signatureKey}`,
+      );
+      return res.status(401).json({ message: "Invalid Signature" });
+    }
 
     console.log(`Midtrans Webhook: ${orderId} - ${transactionStatus}`);
 
